@@ -1,0 +1,37 @@
+ARG PHP_VERSION
+
+FROM php:${PHP_VERSION}
+
+WORKDIR /var/www
+
+RUN apt-get update &&\
+    apt-get install -qq -y --no-install-recommends \
+    unzip \
+    libpng-dev \
+    libonig-dev
+RUN apt-get clean &&\
+    rm -rf /var/lib/apt/lists/*
+
+# Installer Composer
+COPY --from=composer:2.1 /usr/bin/composer /usr/local/bin/composer
+
+# Installer les extensions PHP via install-php-extensions
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions &&\
+    install-php-extensions \
+    pdo_mysql \
+    gd \
+    opcache \
+    zip \
+    mbstring
+
+RUN curl -sS https://get.symfony.com/cli/installer | bash && \
+    mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
+
+RUN apt-get update &&\
+    apt-get install -y git &&\
+    git config --global core.autocrlf input
+
+EXPOSE 8000
+
+CMD ["sh","-c", "composer install && symfony server:start --no-tls --allow-all-ip"]

@@ -1,0 +1,5 @@
+name: ${PROJECT_NAME}-prod
+services:
+  mysql:
+    environment:
+      LOG_LEVEL: "error"
